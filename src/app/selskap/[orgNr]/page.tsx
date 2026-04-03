@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllCompanies, getCompany } from "@/lib/data";
+import { getCompany } from "@/lib/data";
 
-export function generateStaticParams() {
-	return getAllCompanies().map((c) => ({ orgNr: c.org_nr }));
-}
+export const dynamicParams = true;
 
 export default async function SelskapPage({
 	params,
