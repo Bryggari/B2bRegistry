@@ -9,12 +9,14 @@ export default async function SokPage({
 }: {
 	searchParams: Promise<Record<string, string | undefined>>;
 }) {
-	const params = await searchParams;
-	const q = params.q || "";
-	const fylke = params.fylke || "";
-	const kategori = params.kategori || "";
-	const status = params.status || "confirmed";
-	const page = Math.max(1, parseInt(params.page || "1", 10));
+	const rawParams = await searchParams;
+	const first = (v: string | string[] | undefined) =>
+		Array.isArray(v) ? v[0] : v;
+	const q = first(rawParams.q) || "";
+	const fylke = first(rawParams.fylke) || "";
+	const kategori = first(rawParams.kategori) || "";
+	const status = first(rawParams.status) || "confirmed";
+	const page = Math.max(1, parseInt(first(rawParams.page) || "1", 10));
 
 	const all = searchCompanies({ q, fylke, kategori, status });
 	const totalPages = Math.ceil(all.length / PER_PAGE);
