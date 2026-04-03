@@ -19,36 +19,34 @@ export function getStats() {
 	return { total: companies.length, confirmed, probable };
 }
 
-export function getTopIndustries(limit = 15) {
+export function getTopCategories(limit = 5): [string, number][] {
 	const counts: Record<string, number> = {};
 	for (const c of companies) {
-		if (c.nace_desc) {
-			counts[c.nace_desc] = (counts[c.nace_desc] || 0) + 1;
+		const cat = c.product_category;
+		if (cat && !cat.includes("Detaljhandel")) {
+			counts[cat] = (counts[cat] || 0) + 1;
 		}
 	}
 	return Object.entries(counts)
 		.sort((a, b) => b[1] - a[1])
-		.slice(0, limit);
+		.slice(0, limit) as [string, number][];
 }
 
-export function getRegions() {
+export function getRegions(): [string, number][] {
 	const counts: Record<string, number> = {};
 	for (const c of companies) {
 		if (c.fylke) {
 			counts[c.fylke] = (counts[c.fylke] || 0) + 1;
 		}
 	}
-	return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+	return Object.entries(counts).sort((a, b) => b[1] - a[1]) as [
+		string,
+		number,
+	][];
 }
 
-export function getPlatforms() {
-	const counts: Record<string, number> = {};
-	for (const c of companies) {
-		if (c.webshop_platform) {
-			counts[c.webshop_platform] = (counts[c.webshop_platform] || 0) + 1;
-		}
-	}
-	return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+export function getInitialSearchTerms(): string[] {
+	return ["Varmepumpe", "Sveising", "Betong", "Maling", "Aluminium"];
 }
 
 export function getFylker(): string[] {
@@ -59,10 +57,13 @@ export function getFylker(): string[] {
 	return [...set].sort();
 }
 
-export function getPlatformNames(): string[] {
+export function getCategoryNames(): string[] {
 	const set = new Set<string>();
 	for (const c of companies) {
-		if (c.webshop_platform) set.add(c.webshop_platform);
+		const cat = c.product_category;
+		if (cat && !cat.includes("Detaljhandel")) {
+			set.add(cat);
+		}
 	}
 	return [...set].sort();
 }
@@ -70,7 +71,7 @@ export function getPlatformNames(): string[] {
 export function searchCompanies(params: {
 	q?: string;
 	fylke?: string;
-	platform?: string;
+	kategori?: string;
 	status?: string;
 }): Company[] {
 	let results = companies;
@@ -85,8 +86,8 @@ export function searchCompanies(params: {
 		results = results.filter((c) => c.fylke === params.fylke);
 	}
 
-	if (params.platform) {
-		results = results.filter((c) => c.webshop_platform === params.platform);
+	if (params.kategori) {
+		results = results.filter((c) => c.product_category === params.kategori);
 	}
 
 	if (params.q) {
@@ -98,7 +99,11 @@ export function searchCompanies(params: {
 				(c.kommune && c.kommune.toLowerCase().includes(q)) ||
 				(c.fylke && c.fylke.toLowerCase().includes(q)) ||
 				c.org_nr.includes(q) ||
-				(c.signals && c.signals.toLowerCase().includes(q)),
+				(c.signals && c.signals.toLowerCase().includes(q)) ||
+				(c.product_category && c.product_category.toLowerCase().includes(q)) ||
+				(c.formaal && c.formaal.toLowerCase().includes(q)) ||
+				(c.product_keywords &&
+					c.product_keywords.some((kw) => kw.toLowerCase().includes(q))),
 		);
 	}
 

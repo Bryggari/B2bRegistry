@@ -10,8 +10,12 @@ export interface Company {
 	epost: string | null;
 	telefon: string | null;
 	org_form: string;
+	formaal: string | null;
+	aktivitet: string | null;
 	has_webshop: "confirmed" | "probable";
 	webshop_platform: string | null;
 	signals: string | null;
 	url: string | null;
+	product_category: string | null;
+	product_keywords: string[];
 }

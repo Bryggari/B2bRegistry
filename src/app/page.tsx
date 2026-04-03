@@ -1,78 +1,71 @@
 import Link from "next/link";
 import {
-	getPlatforms,
+	getInitialSearchTerms,
 	getRegions,
 	getStats,
-	getTopIndustries,
+	getTopCategories,
 } from "@/lib/data";
 
 export default function Home() {
 	const stats = getStats();
-	const industries = getTopIndustries();
-	const regions = getRegions();
-	const platforms = getPlatforms();
+	const categories = getTopCategories(5);
+	const regions = getRegions().slice(0, 5);
+	const searchTerms = getInitialSearchTerms();
 
 	return (
-		<main className="max-w-7xl mx-auto px-4 sm:px-6">
+		<main className="max-w-[1120px] mx-auto px-4 sm:px-6">
 			{/* Stats */}
-			<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 py-5 sm:py-6">
+			<div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 py-5 sm:py-6">
 				<StatCard
 					number={stats.total.toLocaleString("no-NO")}
 					label="Totalt registrert"
-					color="text-blue-700"
+					color="text-[var(--green-900)]"
 				/>
 				<StatCard
 					number={stats.confirmed.toLocaleString("no-NO")}
 					label="Bekreftet netthandel"
-					color="text-emerald-600"
+					color="text-[var(--green-900)]"
 				/>
 				<StatCard
 					number={stats.probable.toLocaleString("no-NO")}
 					label="Sannsynlig netthandel"
-					color="text-amber-600"
-				/>
-				<StatCard
-					number={(stats.confirmed + stats.probable).toLocaleString("no-NO")}
-					label="Totalt med netthandel"
-					color="text-blue-700"
+					color="text-[var(--amber-800)]"
 				/>
 			</div>
 
 			{/* Search */}
 			<form action="/sok" method="get" className="pb-6">
-				<div className="flex gap-3">
+				<div className="flex flex-col sm:flex-row gap-3">
 					<input
 						type="text"
 						name="q"
-						placeholder="Sok etter selskap, bransje, eller sted..."
-						className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-base outline-none focus:border-blue-500 bg-white"
+						placeholder="Søk etter selskap, kategori eller sted..."
+						className="flex-1 px-4 py-3.5 border-[1.5px] border-[var(--border)] rounded-lg text-[16px] sm:text-[16px] outline-none focus:border-[var(--green-900)] bg-[var(--surface)] placeholder:text-[#A3A3A0]"
 					/>
 					<button
 						type="submit"
-						className="px-6 py-3 bg-blue-700 text-white rounded-lg font-medium text-base hover:bg-blue-800"
+						className="px-7 py-3.5 bg-[var(--green-900)] text-white rounded-md font-[family-name:Satoshi,system-ui,sans-serif] font-medium text-[15px] sm:text-[15px] hover:bg-[var(--green-800)] transition-colors"
 					>
-						Sok
+						Søk
 					</button>
 				</div>
 			</form>
 
 			{/* Breakdowns */}
-			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-8">
+			<div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pb-8">
 				<BreakdownCard
-					title="Topp bransjer"
-					items={industries}
-					linkPrefix="q"
+					title="Kategorier"
+					items={categories}
+					linkPrefix="kategori"
 				/>
-				<BreakdownCard
-					title="Etter region"
-					items={regions}
-					linkPrefix="fylke"
-				/>
-				<BreakdownCard
-					title="Plattformer"
-					items={platforms}
-					linkPrefix="platform"
-				/>
+				<div className="hidden sm:block">
+					<BreakdownCard
+						title="Etter region"
+						items={regions}
+						linkPrefix="fylke"
+					/>
+				</div>
+				<SearchTermsCard terms={searchTerms} />
 			</div>
 		</main>
 	);
@@ -88,9 +81,13 @@ function StatCard({
 	color: string;
 }) {
 	return (
-		<div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5">
-			<div className={`text-2xl sm:text-3xl font-bold ${color}`}>{number}</div>
-			<div className="text-xs sm:text-sm text-gray-500 mt-1">{label}</div>
+		<div className="bg-[var(--surface)] rounded-md p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.06)] text-center">
+			<div
+				className={`font-[family-name:Satoshi,system-ui,sans-serif] text-[26px] sm:text-[30px] font-bold tabular-nums ${color}`}
+			>
+				{number}
+			</div>
+			<div className="text-[16px] text-[var(--muted)] mt-1">{label}</div>
 		</div>
 	);
 }
@@ -105,20 +102,44 @@ function BreakdownCard({
 	linkPrefix: string;
 }) {
 	return (
-		<div className="bg-white border border-gray-200 rounded-xl p-5">
-			<h3 className="font-semibold text-[15px] mb-3">{title}</h3>
+		<div className="bg-[var(--surface)] rounded-md p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.06)]">
+			<h3 className="font-[family-name:Satoshi,system-ui,sans-serif] font-semibold text-[15px] mb-3.5">
+				{title}
+			</h3>
 			{items.map(([name, count]) => (
 				<div
 					key={name}
-					className="flex justify-between py-1.5 sm:py-1 text-sm sm:text-[13px]"
+					className="flex justify-between py-[7px] sm:py-[7px] text-[16px]"
 				>
 					<Link
 						href={`/sok?${linkPrefix}=${encodeURIComponent(name)}&status=all`}
-						className="text-blue-700 hover:underline truncate mr-2"
+						className="text-[var(--green-900)] hover:underline truncate mr-2"
 					>
-						{name.length > 45 ? name.slice(0, 45) + "..." : name}
+						{name.length > 30 ? name.slice(0, 30) + "..." : name}
 					</Link>
-					<span className="text-gray-500 font-medium shrink-0">{count}</span>
+					<span className="text-[var(--muted)] font-medium shrink-0 tabular-nums">
+						{count.toLocaleString("no-NO")}
+					</span>
+				</div>
+			))}
+		</div>
+	);
+}
+
+function SearchTermsCard({ terms }: { terms: string[] }) {
+	return (
+		<div className="bg-[var(--surface)] rounded-md p-5 sm:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_1px_3px_rgba(0,0,0,0.06)]">
+			<h3 className="font-[family-name:Satoshi,system-ui,sans-serif] font-semibold text-[15px] mb-3.5">
+				Søkeord
+			</h3>
+			{terms.map((term) => (
+				<div key={term} className="py-[7px] text-[16px]">
+					<Link
+						href={`/sok?q=${encodeURIComponent(term.toLowerCase())}&status=all`}
+						className="text-[var(--green-900)] hover:underline"
+					>
+						{term}
+					</Link>
 				</div>
 			))}
 		</div>
